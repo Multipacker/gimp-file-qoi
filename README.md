@@ -1,0 +1,1 @@
+# gimp_qoi_format

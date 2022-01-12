@@ -11,17 +11,17 @@ installed for you.
 
 As GIMP provides two ways for plug-ins to be installed (system-wide or per
 user), the build script has to make a choise. This project chooses to
-install for the current user.
+install system-wide.
 
 ### Example
 
 To build on linux you would position yourself at the root of the project in a
 terminal and run the following command:
 
-	./scripts/linux_build.sh
+	sudo ./scripts/linux_build.sh
 
-The plug-in should now be installed in the current users plug-in folder and
-ready to use in GIMP.
+The plug-in should now be installed for the entire system and be ready to use
+in GIMP.
 
 ## Used documentation
 

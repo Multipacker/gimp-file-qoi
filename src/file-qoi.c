@@ -491,10 +491,15 @@ static GimpExportReturn show_export_dialog(gint32 *image, gint32 *drawable, QoiE
 	gtk_box_pack_start(GTK_BOX(gimp_export_dialog_get_content_area(dialog)), vbox, true, true, 0);
 	gtk_widget_show(vbox);
 
-	GtkWidget *toggle = gtk_check_button_new_with_label("Use alpha");
+	GtkWidget *toggle = gtk_check_button_new_with_label("Export alpha");
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(toggle), options->export_alpha);
 	gtk_container_add(GTK_CONTAINER(vbox), toggle);
 	gtk_widget_show(toggle);
+
+	GtkWidget *label = gtk_label_new("Colorspace:");
+	gtk_label_set_xalign(GTK_LABEL(label), 0);
+	gtk_container_add(GTK_CONTAINER(vbox), label);
+	gtk_widget_show(label);
 
 	// As colorspaces are enumerated from 0, if the options are in the same
 	// order as they are in the enum, the active index will match the

@@ -37,8 +37,9 @@ to work more on this plug-in or try and write one on their own.
 * [GIMP Developer Resources](https://developer.gimp.org)
 
 	This website was discovered after the plug-in was written and therefor was
-	not used, but it might be a usefull resource to other people if they want
-	to write their own plug-ins for GIMP.
+	not used. It would have been a usefull resource for developing though and
+	perhaps it will help other people if they want to write their own plug-ins
+	for GIMP.
 
 * [Gtk 3.0](https://docs.gtk.org/gtk3/index.html)
 * [Glib 2.0](https://docs.gtk.org/glib/index.html)

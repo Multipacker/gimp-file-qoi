@@ -6,8 +6,9 @@ A small plug-in for GIMP that adds support for the Quite OK Image format (QOI).
 
 This project has no build system, it uses scripts for building. Inside the
 folder named `scripts`, there is a single script file for each platform that
-building is done for. Run that script and everything should be built and
-installed for you.
+building is done for. Run that script twice: once passing "build" as the first
+argument, once passing "install" as the first argument. After that, everything
+should be built and installed for you.
 
 As GIMP provides two ways for plug-ins to be installed (system-wide or per
 user), the build script has to make a choise. This project chooses to
@@ -16,9 +17,10 @@ install system-wide.
 ### Example
 
 To build on linux you would position yourself at the root of the project in a
-terminal and run the following command:
+terminal and run the following two commands:
 
-	sudo ./scripts/linux_build.sh
+	./scripts/linux_build.sh build
+	./scripts/linux_build.sh install
 
 The plug-in should now be installed for the entire system and be ready to use
 in GIMP.

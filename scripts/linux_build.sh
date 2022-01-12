@@ -10,6 +10,6 @@ cc \
 	`pkg-config --cflags --libs glib-2.0 gtk+-2.0 gimp-2.0 gimpui-2.0` \
 	-o build/file-qoi
 
-DIR="/usr/lib/gimp/2.0/plug-in/file-qoi"
+DIR="/usr/lib/gimp/2.0/plug-ins/file-qoi"
 mkdir -p $DIR
 cp build/file-qoi "${DIR}/file-qoi"

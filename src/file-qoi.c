@@ -94,8 +94,7 @@ static inline guint qoi_pixel_hash(QoiPixel pixel) {
 
 // The only reason the GIMP API is used in this function is to indicate
 // progress to the user. Updating the progress for every pixel would slow down
-// loading a lot, so it is only updated when either a QOI_OP_RGB or QOI_OP_RGBA
-// chunk is decoded.
+// loading a lot, so it is only updated when we have decoded one row of pixels.
 static bool load_image(const gchar *filename, QoiImage *result) {
 	gimp_progress_init_printf("Opening '%s'", filename);
 
@@ -192,6 +191,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 	}
 
 	guint32 pixel_index     = 0;
+	guint32 column_index    = 0;
 	guint64 max_pixel_index = result->width * result->height;
 	QoiPixel current_pixel  = { .alpha = 255 };
 	QoiPixel array[64]      = { 0 };
@@ -213,7 +213,6 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 
 			result->pixels[pixel_index++] = current_pixel;
 			array[qoi_pixel_hash(current_pixel)] = current_pixel;
-			gimp_progress_update((gdouble) pixel_index / (gdouble) max_pixel_index);
 		} else if (tag == QOI_OP_RGBA) {
 			current_pixel.red   = file_data[file_index++];
 			current_pixel.green = file_data[file_index++];
@@ -222,7 +221,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 
 			result->pixels[pixel_index++] = current_pixel;
 			array[qoi_pixel_hash(current_pixel)] = current_pixel;
-			gimp_progress_update((gdouble) pixel_index / (gdouble) max_pixel_index);
+			++column_index;
 		} else if ((tag & QOI_SMALL_TAG_MASK) == QOI_OP_INDEX) {
 			// There might be an end marker here as this chunk could be a 0
 			// byte which is the same byte the end marker starts with, so check
@@ -238,6 +237,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 			guint8 index = tag & 0x3F;
 			current_pixel = array[index];
 			result->pixels[pixel_index++] = current_pixel;
+			++column_index;
 		} else if ((tag & QOI_SMALL_TAG_MASK) == QOI_OP_DIFF) {
 			gint dr = ((tag >> 4) & 0x03) + QOI_DIFF_LOWER_BOUND;
 			gint dg = ((tag >> 2) & 0x03) + QOI_DIFF_LOWER_BOUND;
@@ -249,6 +249,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 
 			result->pixels[pixel_index++] = current_pixel;
 			array[qoi_pixel_hash(current_pixel)] = current_pixel;
+			++column_index;
 		} else if ((tag & QOI_SMALL_TAG_MASK) == QOI_OP_LUMA) {
 			guint8 dr_db = file_data[file_index++];
 
@@ -262,6 +263,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 
 			result->pixels[pixel_index++] = current_pixel;
 			array[qoi_pixel_hash(current_pixel)] = current_pixel;
+			++column_index;
 		} else if ((tag & QOI_SMALL_TAG_MASK) == QOI_OP_RUN) {
 			guint8 run = (tag & 0x3F) + 1;
 
@@ -273,7 +275,17 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 				return false;
 			}
 
-			while (run-- != 0) result->pixels[pixel_index++] = current_pixel;
+			// As this is a repeat of the previous pixel, there is no need to
+			// update the map of previously used pixels, it's already there.
+			while (run-- != 0) {
+				result->pixels[pixel_index++] = current_pixel;
+				++column_index;
+			}
+		}
+
+		if (column_index >= result->width) {
+			column_index -= result->width;
+			gimp_progress_update((gdouble) pixel_index / (gdouble) max_pixel_index);
 		}
 	}
 
@@ -308,8 +320,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 
 // The only reason the GIMP API is used in this function is to indicate
 // progress to the user. Updating the progress for every pixel would slow down
-// saving a lot, so it is only updated when either a QOI_OP_RGB or QOI_OP_RGBA
-// chunk is encoded.
+// saving a lot, so it is only updated when we have encoded one row of pixels.
 static bool save_image(QoiImage image, const gchar *filename) {
 	gimp_progress_init_printf("Exporting '%s'", filename);
 
@@ -336,6 +347,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 	*(QoiHeader *) &file_data[file_index] = header;
 	file_index += QOI_HEADER_SIZE;
 
+	guint32 column_index    = 0;
 	guint64 max_pixel_index = image.width * image.height;
 	QoiPixel previous_pixel = { .alpha = 255 };
 	QoiPixel array[64]      = { 0 };
@@ -349,6 +361,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 			while (process_next) {
 				++run;
 				++pixel_index;
+				++column_index;
 
 				process_next = (
 					pixel_index < max_pixel_index &&
@@ -363,6 +376,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 			file_data[file_index++] = QOI_OP_INDEX | hash;
 			previous_pixel = current_pixel;
 			++pixel_index;
+			++column_index;
 		} else if (!image.has_alpha || current_pixel.alpha == previous_pixel.alpha) {
 			gint32 dr = (gint32) (current_pixel.red   - previous_pixel.red);
 			gint32 dg = (gint32) (current_pixel.green - previous_pixel.green);
@@ -394,13 +408,12 @@ static bool save_image(QoiImage image, const gchar *filename) {
 				file_data[file_index++] = current_pixel.red;
 				file_data[file_index++] = current_pixel.green;
 				file_data[file_index++] = current_pixel.blue;
-				// pixel_index hasn't been incremented yet, add one to it
-				gimp_progress_update((gdouble) (pixel_index + 1) / (gdouble) max_pixel_index);
 			}
 
 			array[hash] = current_pixel;
 			previous_pixel = current_pixel;
 			++pixel_index;
+			++column_index;
 		} else {
 			file_data[file_index++] = QOI_OP_RGBA;
 			file_data[file_index++] = current_pixel.red;
@@ -410,6 +423,11 @@ static bool save_image(QoiImage image, const gchar *filename) {
 			array[hash] = current_pixel;
 			previous_pixel = current_pixel;
 			++pixel_index;
+			++column_index;
+		}
+
+		if (column_index >= image.width) {
+			column_index -= image.width;
 			gimp_progress_update((gdouble) pixel_index / (gdouble) max_pixel_index);
 		}
 	}

@@ -101,31 +101,40 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 	gint file_size;
 	guint8 *file_data = 0;
 
-	errno = 0;
 	FILE *file = fopen(filename, "rb");
-	if (file) {
-		if (fseek(file, 0, SEEK_END) != -1) {
-			file_size = ftell(file);
-			if (file_size != -1) {
-				if (fseek(file, 0, SEEK_SET) != -1) {
-					file_data = g_try_malloc(file_size);
-					if (!file_data) {
-						errno = ENOMEM;
-					} else {
-						if (fread(file_data, 1, file_size, file) != file_size) {
-							g_free(file_data);
-							file_data = 0;
-						}
-					}
-				}
-			}
-		}
-
-		// There is no point in checking for failure when closing the fail as
-		// there is noting that can be done about it.
-		fclose(file);
+	if (!file) {
+		goto fail_without_file;
 	}
 
+	if (fseek(file, 0, SEEK_END) == -1) {
+		goto fail_with_file;
+	}
+
+	file_size = ftell(file);
+	if (file_size == -1) {
+		goto fail_with_file;
+	}
+	if (fseek(file, 0, SEEK_SET) == -1) {
+		goto fail_with_file;
+	}
+
+	file_data = g_try_malloc(file_size);
+	if (!file_data) {
+		errno = ENOMEM;
+		goto fail_with_file;
+	}
+
+	if (fread(file_data, 1, file_size, file) != file_size) {
+		g_free(file_data);
+		file_data = 0;
+		goto fail_with_file;
+	}
+
+fail_with_file:
+	// There is no point in checking for failure when closing the fail as there
+	// is noting that can be done about it.
+	fclose(file);
+fail_without_file:
 	if (!file_data) {
 		g_message("Could not read from file. %s", strerror(errno));
 		return false;

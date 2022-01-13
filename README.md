@@ -15,6 +15,10 @@ As GIMP provides two ways for plug-ins to be installed (system-wide or per
 user), the build script has to make a choise. This project chooses to
 install system-wide.
 
+### Dependencies
+
+This project requires glib 2.0, gtk+ 2.0, gimp 2.0 and gimpui 2.0 to build.
+
 ### Example
 
 To build on linux you would position yourself at the root of the project in a

@@ -1,4 +1,4 @@
-# gimp_qoi_format
+# gimp-file-qoi
 
 A small plug-in for GIMP that adds support for the Quite OK Image format (QOI).
 

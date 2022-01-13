@@ -4,11 +4,12 @@ A small plug-in for GIMP that adds support for the Quite OK Image format (QOI).
 
 ## Building
 
-This project has no build system, it uses scripts for building. Inside the
-folder named `scripts`, there is a single script file for each platform that
-building is done for. Run that script twice: once passing "build" as the first
-argument, once passing "install" as the first argument. After that, everything
-should be built and installed for you.
+This project uses scripts for building rather than make to not have deal with
+the complexity of writing makefiles. Inside the folder named `scripts`, there
+is a single script file for each platform that building is done for. Run that
+script twice: once passing "build" as the first argument, once passing
+"install" as the first argument. After that, everything should be built and
+installed for you.
 
 As GIMP provides two ways for plug-ins to be installed (system-wide or per
 user), the build script has to make a choise. This project chooses to

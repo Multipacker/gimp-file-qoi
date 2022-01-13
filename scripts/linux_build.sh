@@ -4,7 +4,7 @@
 operation=${1:-build}
 
 if [ "$operation" == "build" ]; then
-	mkdir --parents p build
+	mkdir --parents build
 
 	# This is generas more or less the same command line as gimptool-2.0, except for the fact that we don't use pango
 	cc \

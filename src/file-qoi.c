@@ -131,7 +131,7 @@ static bool load_image(const gchar *filename, QoiImage *result) {
 	}
 
 fail_with_file:
-	// There is no point in checking for failure when closing the fail as there
+	// There is no point in checking for failure when closing the file as there
 	// is noting that can be done about it.
 	fclose(file);
 fail_without_file:

@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# If no operation is specified, default to building
+# If no operation is specified, default to building.
 operation=${1:-build}
 
 if [ "$operation" == "build" ]; then
 	mkdir --parents build
 
-	# This is generas more or less the same command line as gimptool-2.0, except for the fact that we don't use pango
+	# This is more or less the same command line that gimptool-2.0 uses, except
+	# for the fact that we don't use pango.
 	cc \
 		-Wno-deprecated-declarations \
 		-O2 \

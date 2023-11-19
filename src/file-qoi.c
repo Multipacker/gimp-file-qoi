@@ -277,7 +277,7 @@ fail_without_file:
 			guint8 run = (tag & 0x3F) + 1;
 
 			// Make sure there is enough space for all of the encoded pixels
-			if (pixel_index > max_pixel_index + run) {
+			if (pixel_index + run > max_pixel_index) {
 				g_message("Too many encoded pixels.");
 				g_free(result->pixels);
 				g_free(file_data);

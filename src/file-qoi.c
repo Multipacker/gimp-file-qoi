@@ -222,6 +222,7 @@ fail_without_file:
 
 			result->pixels[pixel_index++] = current_pixel;
 			array[qoi_pixel_hash(current_pixel)] = current_pixel;
+			++column_index;
 		} else if (tag == QOI_OP_RGBA) {
 			current_pixel.red   = file_data[file_index++];
 			current_pixel.green = file_data[file_index++];
@@ -277,19 +278,18 @@ fail_without_file:
 			guint8 run = (tag & 0x3F) + 1;
 
 			// Make sure there is enough space for all of the encoded pixels
-			if (pixel_index > max_pixel_index + run) {
+			if (pixel_index + run > max_pixel_index) {
 				g_message("Too many encoded pixels.");
 				g_free(result->pixels);
 				g_free(file_data);
 				return false;
 			}
 
-			// As this is a repeat of the previous pixel, there is no need to
-			// update the map of previously used pixels, it's already there.
 			while (run-- != 0) {
 				result->pixels[pixel_index++] = current_pixel;
 				++column_index;
 			}
+			array[qoi_pixel_hash(current_pixel)] = current_pixel;
 		}
 
 		if (column_index >= result->width) {
@@ -381,6 +381,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 					run = 0;
 				}
 			}
+			array[hash] = current_pixel;
 		} else if (qoi_pixel_equal(current_pixel, array[hash])) {
 			file_data[file_index++] = QOI_OP_INDEX | hash;
 			previous_pixel = current_pixel;

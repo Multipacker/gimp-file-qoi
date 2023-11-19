@@ -222,6 +222,7 @@ fail_without_file:
 
 			result->pixels[pixel_index++] = current_pixel;
 			array[qoi_pixel_hash(current_pixel)] = current_pixel;
+			++column_index;
 		} else if (tag == QOI_OP_RGBA) {
 			current_pixel.red   = file_data[file_index++];
 			current_pixel.green = file_data[file_index++];

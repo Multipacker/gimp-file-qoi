@@ -284,12 +284,11 @@ fail_without_file:
 				return false;
 			}
 
-			// As this is a repeat of the previous pixel, there is no need to
-			// update the map of previously used pixels, it's already there.
 			while (run-- != 0) {
 				result->pixels[pixel_index++] = current_pixel;
 				++column_index;
 			}
+			array[qoi_pixel_hash(current_pixel)] = current_pixel;
 		}
 
 		if (column_index >= result->width) {
@@ -381,6 +380,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 					run = 0;
 				}
 			}
+			array[hash] = current_pixel;
 		} else if (qoi_pixel_equal(current_pixel, array[hash])) {
 			file_data[file_index++] = QOI_OP_INDEX | hash;
 			previous_pixel = current_pixel;

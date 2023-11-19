@@ -201,10 +201,10 @@ fail_without_file:
 
 	guint32 pixel_index     = 0;
 	guint32 column_index    = 0;
-	guint64 max_pixel_index = result->width * result->height;
+	guint64 pixel_count     = result->width * result->height;
 	QoiPixel current_pixel  = { .alpha = 255 };
 	QoiPixel array[64]      = { 0 };
-	while (pixel_index < max_pixel_index) {
+	while (pixel_index < pixel_count) {
 		// Make sure there enough file data for the end marker, as that means
 		// there is enough data for any of the chunks as well.
 		if (file_size < file_index + QOI_END_MARKER_SIZE) {
@@ -278,7 +278,7 @@ fail_without_file:
 			guint8 run = (tag & 0x3F) + 1;
 
 			// Make sure there is enough space for all of the encoded pixels
-			if (pixel_index + run > max_pixel_index) {
+			if (pixel_index + run > pixel_count) {
 				g_message("Too many encoded pixels.");
 				g_free(result->pixels);
 				g_free(file_data);
@@ -294,7 +294,7 @@ fail_without_file:
 
 		if (column_index >= result->width) {
 			column_index -= result->width;
-			gimp_progress_update((gdouble) pixel_index / (gdouble) max_pixel_index);
+			gimp_progress_update((gdouble) pixel_index / (gdouble) pixel_count);
 		}
 	}
 
@@ -357,10 +357,10 @@ static bool save_image(QoiImage image, const gchar *filename) {
 	file_index += QOI_HEADER_SIZE;
 
 	guint32 column_index    = 0;
-	guint64 max_pixel_index = image.width * image.height;
+	guint64 pixel_count     = image.width * image.height;
 	QoiPixel previous_pixel = { .alpha = 255 };
 	QoiPixel array[64]      = { 0 };
-	for (guint32 pixel_index = 0; pixel_index < max_pixel_index;) {
+	for (guint32 pixel_index = 0; pixel_index < pixel_count;) {
 		QoiPixel current_pixel = image.pixels[pixel_index];
 		guint32  hash          = qoi_pixel_hash(current_pixel);
 
@@ -373,7 +373,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 				++column_index;
 
 				process_next = (
-					pixel_index < max_pixel_index &&
+					pixel_index < pixel_count &&
 					qoi_pixel_equal(previous_pixel, image.pixels[pixel_index])
 				);
 				if (run == QOI_MAX_RUN_LENGTH || !process_next) {
@@ -438,7 +438,7 @@ static bool save_image(QoiImage image, const gchar *filename) {
 
 		if (column_index >= image.width) {
 			column_index -= image.width;
-			gimp_progress_update((gdouble) pixel_index / (gdouble) max_pixel_index);
+			gimp_progress_update((gdouble) pixel_index / (gdouble) pixel_count);
 		}
 	}
 
